@@ -418,6 +418,33 @@ std::unordered_map<std::string, std::vector<uint8_t>> CacheManager::exportAll() 
 }
 
 void CacheManager::shutdown() {
+<<<<<<< HEAD
+    std::unique_lock<std::shared_mutex> lock(cacheMutex);
+    
+    try {
+        if (!initialized) {
+            return;
+        }
+        
+        // Очищаем кэш
+        if (pImpl->dynamicCache) {
+            pImpl->dynamicCache->clear();
+            pImpl->dynamicCache.reset();
+        }
+        
+        pImpl->isInitialized = false;
+        initialized = false;
+        
+        if (auto logger = spdlog::get("cachemanager")) {
+            logger->info("CacheManager завершил работу");
+        }
+        
+    } catch (const std::exception& e) {
+        if (auto logger = spdlog::get("cachemanager")) {
+            logger->error("Ошибка завершения работы: {}", e.what());
+        }
+    }
+=======
     spdlog::info("CacheManager: shutdown вызван");
     std::unique_ptr<DynamicCache<std::string, std::vector<uint8_t>>> tmpCache;
     {
@@ -437,6 +464,7 @@ void CacheManager::shutdown() {
         }
     }
     // Деструктор tmpCache вызовется здесь, вне lock
+>>>>>>> 6194c3d (Аудит, исправления потоков, автоматизация тестов: добавлен run_all_tests.sh, исправлены deadlock-и, все тесты проходят)
 }
 
 } // namespace cache

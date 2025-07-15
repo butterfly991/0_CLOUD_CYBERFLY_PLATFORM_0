@@ -30,7 +30,10 @@
 #include "core/thread/ThreadPool.hpp"
 #include "core/drivers/ARMDriver.hpp"
 #include "core/balancer/TaskTypes.hpp"
+<<<<<<< HEAD
+=======
     #include <spdlog/spdlog.h>
+>>>>>>> 6194c3d (Аудит, исправления потоков, автоматизация тестов: добавлен run_all_tests.sh, исправлены deadlock-и, все тесты проходят)
 
 class SystemStressTest {
 private:
@@ -548,8 +551,11 @@ int main() {
     try {
         SystemStressTest stressTest;
         stressTest.runAllStressTests();
+<<<<<<< HEAD
+=======
         std::this_thread::sleep_for(std::chrono::milliseconds(200)); // Дать потокам завершиться
         spdlog::shutdown(); // Гарантируем запись всех логов
+>>>>>>> 6194c3d (Аудит, исправления потоков, автоматизация тестов: добавлен run_all_tests.sh, исправлены deadlock-и, все тесты проходят)
         std::cout << "All system stress tests passed!\n";
     } catch (const std::exception& e) {
         std::cerr << "System stress test failed with exception: " << e.what() << std::endl;

@@ -173,8 +173,11 @@ public:
     RecoveryManager(const RecoveryManager&) = delete;
     RecoveryManager& operator=(const RecoveryManager&) = delete;
     RecoveryManager(RecoveryManager&&) noexcept;
+<<<<<<< HEAD
+=======
     RecoveryManager& operator=(RecoveryManager&&) noexcept;
     ~RecoveryManager(); // Деструктор
+>>>>>>> 6194c3d (Аудит, исправления потоков, автоматизация тестов: добавлен run_all_tests.sh, исправлены deadlock-и, все тесты проходят)
     bool initialize(); // Инициализация
     void shutdown();   // Завершение работы
     std::string createRecoveryPoint(); // Создать точку восстановления

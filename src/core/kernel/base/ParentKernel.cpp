@@ -232,6 +232,8 @@ std::vector<std::string> ParentKernel::getSupportedFeatures() const {
     return {"dynamic_thread_pool", "dynamic_cache", "energy_management", "task_orchestration"};
 }
 
+<<<<<<< HEAD
+=======
 void ParentKernel::scheduleTask(std::function<void()> task, int priority) {
     // Простейшая реализация: просто добавляем задачу в threadPool с приоритетом (если поддерживается)
     if (threadPool) {
@@ -242,6 +244,7 @@ void ParentKernel::scheduleTask(std::function<void()> task, int priority) {
     }
 }
 
+>>>>>>> 6194c3d (Аудит, исправления потоков, автоматизация тестов: добавлен run_all_tests.sh, исправлены deadlock-и, все тесты проходят)
 } // namespace kernel
 } // namespace core
 } // namespace cloud

@@ -21,6 +21,8 @@ namespace cloud {
 namespace core {
 namespace recovery {
 
+<<<<<<< HEAD
+=======
 // Определение структуры Impl для RecoveryManager (должно быть до методов)
 struct RecoveryManager::Impl {
     RecoveryConfig config;
@@ -36,6 +38,7 @@ struct RecoveryManager::Impl {
         : config(cfg), metrics{}, lastCheckpoint(std::chrono::steady_clock::now()), rng(std::random_device{}()) {}
 };
 
+>>>>>>> 6194c3d (Аудит, исправления потоков, автоматизация тестов: добавлен run_all_tests.sh, исправлены deadlock-и, все тесты проходят)
 namespace detail {
 
 // Реализация логгера
