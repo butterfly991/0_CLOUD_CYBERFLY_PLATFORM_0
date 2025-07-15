@@ -1,0 +1,77 @@
+# --- C++/CMake build artifacts ---
+/build/
+build/
+build/**
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.o
+*.obj
+*.so
+*.dll
+*.dylib
+*.a
+*.lib
+*.exe
+*.out
+*.app
+*.mod
+*.pch
+*.pdb
+*.ilk
+*.idb
+*.exp
+*.log
+*.tmp
+*.swp
+*.swo
+*.bak
+*.old
+*.orig
+*.user
+*.DS_Store
+*.directory
+*.vscode/
+.idea/
+*.code-workspace
+
+# --- Test/coverage artifacts ---
+Testing/
+*.gcda
+*.gcno
+*.gcov
+coverage/
+
+# --- OS/Editor/Tooling ---
+Thumbs.db
+.DS_Store
+*.sublime-workspace
+*.sublime-project
+*.kate-swp
+*.kate-swp*
+*.kateconfig
+*.swp
+*.swo
+*~
+
+# --- Project-specific ---
+logs/
+recovery_points/
+e2e_recovery_points/
+
+# --- Ignore generated binaries ---
+bin/
+lib/
+
+# --- Allow configs, docs, scripts, sources, tests ---
+!config/
+!docs/
+!scripts/
+!src/
+!include/
+!tests/
+!CMakeLists.txt
+!README.md
+!*.md
+!*.json 

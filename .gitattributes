@@ -1,0 +1,14 @@
+*.cpp linguist-language=C++
+*.cc linguist-language=C++
+*.cxx linguist-language=C++
+*.hpp linguist-language=C++
+*.hxx linguist-language=C++
+*.h linguist-language=C++
+
+CMakeLists.txt linguist-language=cmake
+*.cmake linguist-language=cmake
+
+# Скрыть документацию и служебные файлы из статистики
+*.md linguist-documentation
+CMakeLists.txt linguist-documentation
+*.json linguist-documentation 
