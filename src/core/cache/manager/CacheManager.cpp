@@ -26,6 +26,13 @@ struct CacheManager::Impl {
             spdlog::error("Ошибка инициализации логгера: {}", e.what());
         }
     }
+
+    ~Impl() {
+        if (dynamicCache) {
+            spdlog::info("[DEBUG] Impl::~Impl: DynamicCache ptr = {}", static_cast<void*>(dynamicCache.get()));
+        }
+        spdlog::info("CacheManager::Impl: деструктор вызван (DEBUG)");
+    }
 };
 
 CacheManager::CacheManager(const CacheConfig& config)
@@ -51,6 +58,7 @@ CacheManager::CacheManager(const CacheConfig& config)
 }
 
 CacheManager::~CacheManager() {
+    spdlog::info("CacheManager: деструктор вызван (DEBUG)");
     shutdown();
 }
 
@@ -418,37 +426,11 @@ std::unordered_map<std::string, std::vector<uint8_t>> CacheManager::exportAll() 
 }
 
 void CacheManager::shutdown() {
-<<<<<<< HEAD
-    std::unique_lock<std::shared_mutex> lock(cacheMutex);
-    
-    try {
-        if (!initialized) {
-            return;
-        }
-        
-        // Очищаем кэш
-        if (pImpl->dynamicCache) {
-            pImpl->dynamicCache->clear();
-            pImpl->dynamicCache.reset();
-        }
-        
-        pImpl->isInitialized = false;
-        initialized = false;
-        
-        if (auto logger = spdlog::get("cachemanager")) {
-            logger->info("CacheManager завершил работу");
-        }
-        
-    } catch (const std::exception& e) {
-        if (auto logger = spdlog::get("cachemanager")) {
-            logger->error("Ошибка завершения работы: {}", e.what());
-        }
-    }
-=======
+
     spdlog::info("CacheManager: shutdown вызван");
     std::unique_ptr<DynamicCache<std::string, std::vector<uint8_t>>> tmpCache;
     {
-        std::unique_lock<std::shared_mutex> lock(cacheMutex);
+    std::unique_lock<std::shared_mutex> lock(cacheMutex);
         if (!initialized) {
             return;
         }
@@ -462,9 +444,11 @@ void CacheManager::shutdown() {
         if (auto logger = spdlog::get("cachemanager")) {
             logger->info("CacheManager завершил работу");
         }
+        }
+    if (pImpl->dynamicCache) {
+        spdlog::info("[DEBUG] shutdown: DynamicCache ptr = {}", static_cast<void*>(pImpl->dynamicCache.get()));
     }
     // Деструктор tmpCache вызовется здесь, вне lock
->>>>>>> 6194c3d (Аудит, исправления потоков, автоматизация тестов: добавлен run_all_tests.sh, исправлены deadlock-и, все тесты проходят)
 }
 
 } // namespace cache

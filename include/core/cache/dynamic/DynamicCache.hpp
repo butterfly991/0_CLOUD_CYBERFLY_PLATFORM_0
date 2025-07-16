@@ -90,10 +90,7 @@ private:
     void logPerformanceMetrics() const;
     bool isIdle() const;
     void adaptiveSleep();
-<<<<<<< HEAD
-=======
     std::mutex cleanupMutex_; // Новый mutex только для ожидания на cleanupCv_
->>>>>>> 6194c3d (Аудит, исправления потоков, автоматизация тестов: добавлен run_all_tests.sh, исправлены deadlock-и, все тесты проходят)
 };
 
 // Алиас для удобства использования динамического кэша по умолчанию
@@ -142,10 +139,8 @@ DynamicCache<Key, Value>::DynamicCache(size_t initialSize, size_t defaultTTL)
 
 template<typename Key, typename Value>
 DynamicCache<Key, Value>::~DynamicCache() {
-<<<<<<< HEAD
-=======
+    spdlog::info("DynamicCache: деструктор вызван (DEBUG)");
     spdlog::info("DynamicCache: деструктор вызван, завершаем cleanupThread...");
->>>>>>> 6194c3d (Аудит, исправления потоков, автоматизация тестов: добавлен run_all_tests.sh, исправлены deadlock-и, все тесты проходят)
     stopCleanupThread();
 }
 
@@ -246,6 +241,8 @@ void DynamicCache<Key, Value>::clear() {
     
     cache_.clear();
     lruList_.clear();
+    // Гарантируем пробуждение cleanupThread после очистки
+    notifyCleanupThread();
 }
 
 template<typename Key, typename Value>
@@ -409,21 +406,6 @@ void DynamicCache<Key, Value>::startCleanupThread() {
 
 template<typename Key, typename Value>
 void DynamicCache<Key, Value>::stopCleanupThread() {
-<<<<<<< HEAD
-    if (!cleanupThreadRunning_.load(std::memory_order_acquire)) {
-        return;
-    }
-    
-    stopCleanup_.store(true, std::memory_order_release);
-    cleanupCv_.notify_all();
-    
-    if (cleanupThread_.joinable()) {
-        cleanupThread_.join();
-    }
-    
-    cleanupThreadRunning_.store(false, std::memory_order_release);
-    spdlog::debug("DynamicCache: фоновый поток завершен (адаптивный)");
-=======
     spdlog::info("DynamicCache: stopCleanupThread вызван");
     if (!cleanupThreadRunning_.load(std::memory_order_acquire)) {
         spdlog::info("DynamicCache: cleanupThread уже не работает");
@@ -432,16 +414,17 @@ void DynamicCache<Key, Value>::stopCleanupThread() {
     stopCleanup_.store(true, std::memory_order_release);
     {
         std::lock_guard<std::mutex> lock(cleanupMutex_);
-        cleanupCv_.notify_all();
+    cleanupCv_.notify_all();
     }
     if (cleanupThread_.joinable()) {
         spdlog::info("DynamicCache: ожидаем завершения cleanupThread...");
         cleanupThread_.join();
         spdlog::info("DynamicCache: cleanupThread завершён");
+        // Дополнительный notify на всякий случай
+        notifyCleanupThread();
     }
     cleanupThreadRunning_.store(false, std::memory_order_release);
     spdlog::info("DynamicCache: stopCleanupThread завершён");
->>>>>>> 6194c3d (Аудит, исправления потоков, автоматизация тестов: добавлен run_all_tests.sh, исправлены deadlock-и, все тесты проходят)
 }
 
 template<typename Key, typename Value>
@@ -539,43 +522,23 @@ size_t DynamicCache<Key, Value>::calculateOptimalCleanupInterval() const {
 
 template<typename Key, typename Value>
 void DynamicCache<Key, Value>::adaptiveSleep() {
-<<<<<<< HEAD
-=======
-    if (stopCleanup_.load(std::memory_order_acquire)) {
-        spdlog::info("DynamicCache: adaptiveSleep: stopCleanup_ выставлен, не засыпаем");
-        return;
-    }
->>>>>>> 6194c3d (Аудит, исправления потоков, автоматизация тестов: добавлен run_all_tests.sh, исправлены deadlock-и, все тесты проходят)
+    while (!stopCleanup_.load(std::memory_order_acquire)) {
     auto interval = calculateOptimalCleanupInterval();
-    
     if (isIdle()) {
-        // Если кэш неактивен, спим дольше
         spdlog::info("DynamicCache: кэш неактивен, сон {} секунд", IDLE_SLEEP_SECONDS);
-<<<<<<< HEAD
-        std::unique_lock<std::shared_mutex> lock(mutex_);
-=======
-        std::unique_lock<std::mutex> lock(cleanupMutex_);
->>>>>>> 6194c3d (Аудит, исправления потоков, автоматизация тестов: добавлен run_all_tests.sh, исправлены deadlock-и, все тесты проходят)
+            std::unique_lock<std::mutex> lock(cleanupMutex_);
         cleanupCv_.wait_for(lock, std::chrono::seconds(IDLE_SLEEP_SECONDS), 
                            [this] { return stopCleanup_.load(std::memory_order_acquire); });
     } else {
-        // Обычный сон с уведомлениями
-<<<<<<< HEAD
-        std::unique_lock<std::shared_mutex> lock(mutex_);
+            std::unique_lock<std::mutex> lock(cleanupMutex_);
         cleanupCv_.wait_for(lock, std::chrono::seconds(interval), 
                            [this] { return stopCleanup_.load(std::memory_order_acquire); });
+        }
+        if (stopCleanup_.load(std::memory_order_acquire)) {
+            spdlog::info("DynamicCache: adaptiveSleep: stopCleanup_ выставлен после wait, выходим");
+            break;
+        }
     }
-=======
-        std::unique_lock<std::mutex> lock(cleanupMutex_);
-        cleanupCv_.wait_for(lock, std::chrono::seconds(interval), 
-                           [this] { return stopCleanup_.load(std::memory_order_acquire); });
-    }
-    // Явная проверка после выхода из wait_for
-    if (stopCleanup_.load(std::memory_order_acquire)) {
-        spdlog::info("DynamicCache: adaptiveSleep: stopCleanup_ выставлен после wait, выходим");
-        return;
-    }
->>>>>>> 6194c3d (Аудит, исправления потоков, автоматизация тестов: добавлен run_all_tests.sh, исправлены deadlock-и, все тесты проходят)
 }
 
 template<typename Key, typename Value>
@@ -593,10 +556,7 @@ void DynamicCache<Key, Value>::cleanupThreadFunc() {
     spdlog::info("DynamicCache: cleanupThread стартует (thread_id={})", oss.str());
     
     while (!stopCleanup_.load(std::memory_order_acquire)) {
-<<<<<<< HEAD
-=======
         spdlog::info("DynamicCache: cleanupThreadFunc цикл, stopCleanup_={}", stopCleanup_.load());
->>>>>>> 6194c3d (Аудит, исправления потоков, автоматизация тестов: добавлен run_all_tests.sh, исправлены deadlock-и, все тесты проходят)
         // Выполняем очистку
         {
             std::unique_lock<std::shared_mutex> lock(mutex_);
@@ -616,12 +576,9 @@ void DynamicCache<Key, Value>::cleanupThreadFunc() {
         // Адаптивный сон
         adaptiveSleep();
         
-<<<<<<< HEAD
-=======
         // Явная проверка после adaptiveSleep
         if (stopCleanup_.load(std::memory_order_acquire)) break;
-
->>>>>>> 6194c3d (Аудит, исправления потоков, автоматизация тестов: добавлен run_all_tests.sh, исправлены deadlock-и, все тесты проходят)
+        
         // Логируем метрики каждые 10 операций
         if (totalOperations_.load(std::memory_order_relaxed) % 10 == 0) {
             logPerformanceMetrics();
@@ -631,8 +588,6 @@ void DynamicCache<Key, Value>::cleanupThreadFunc() {
     spdlog::info("DynamicCache: cleanupThread полностью завершён (thread_id={})", oss.str());
 }
 
-<<<<<<< HEAD
-=======
 template<typename Key, typename Value>
 std::unordered_map<Key, Value> DynamicCache<Key, Value>::exportAll() const {
     std::shared_lock<std::shared_mutex> lock(mutex_);
@@ -650,7 +605,6 @@ void DynamicCache<Key, Value>::cleanupSync() {
     evictIfNeeded();
 }
 
->>>>>>> 6194c3d (Аудит, исправления потоков, автоматизация тестов: добавлен run_all_tests.sh, исправлены deadlock-и, все тесты проходят)
 } // namespace cache
 } // namespace core
 } // namespace cloud
